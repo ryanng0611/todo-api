@@ -14,9 +14,11 @@ namespace TodoApi.Controllers
     public class TodoItemsController : ControllerBase
     {
         private readonly TodoContext _context;
+        private readonly ITodoItemService _todoItemService;
 
-        public TodoItemsController(TodoContext context)
+        public TodoItemsController(TodoContext context, ITodoItemService todoItemService)
         {
+            _todoItemService = todoItemService;
             _context = context;
         }
 
@@ -24,7 +26,8 @@ namespace TodoApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TodoItem>>> GetTodoItems()
         {
-            return await _context.TodoItems.ToListAsync();
+            var todoItems = await _todoItemService.GetTodoItemsAsync();
+            return Ok(todoItems);
         }
 
         // GET: api/TodoItems/5
@@ -75,12 +78,16 @@ namespace TodoApi.Controllers
         // POST: api/TodoItems
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<TodoItem>> PostTodoItem(TodoItem todoItem)
+        public async Task<ActionResult<TodoItem>> PostTodoItem(CreateTodoItemDto newTodoItem)
         {
-            _context.TodoItems.Add(todoItem);
-            await _context.SaveChangesAsync();
+            var createdTodoItem = await _todoItemService.CreateTodoItemAsync(newTodoItem);
 
-            return CreatedAtAction("GetTodoItem", new { id = todoItem.Id }, todoItem);
+            if (createdTodoItem == null)
+            {
+                return NotFound();
+            }
+
+            return CreatedAtAction(nameof(GetTodoItem), new { id = createdTodoItem.Id }, createdTodoItem);
         }
 
         // DELETE: api/TodoItems/5
