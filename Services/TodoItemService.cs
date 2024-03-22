@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using TodoApi.Database;
 using TodoApi.Models;
 public class TodoItemService : ITodoItemService
 {
-    private readonly TodoContext _context;
+    private readonly DatabaseContext _context;
 
-    public TodoItemService(TodoContext context)
+    public TodoItemService(DatabaseContext context)
     {
         _context = context;
     }
