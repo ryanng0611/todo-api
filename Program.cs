@@ -1,16 +1,19 @@
 using System.Configuration;
 using Microsoft.EntityFrameworkCore;
 using TodoApi.Models;
-var builder = WebApplication.CreateBuilder(args);
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Identity;
+using TodoApi.Database;
 
-// Add services to the container.
+var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
-builder.Services.AddDbContext<TodoContext>(opt => opt
+builder.Services.AddDbContext<DatabaseContext>(opt => opt
         .UseNpgsql(
         builder.Configuration
         .GetConnectionString
         ("PostgresDBConnection")));
 builder.Services.AddScoped<ITodoItemService, TodoItemService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
