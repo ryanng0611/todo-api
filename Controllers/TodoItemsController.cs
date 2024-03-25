@@ -1,16 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+// using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using TodoApi.Middleware;
 using TodoApi.Models;
 
 namespace TodoApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("todoitem")]
     [ApiController]
+    [Authorize]
     public class TodoItemsController : ControllerBase
     {
         private readonly ITodoItemService _todoItemService;
@@ -21,7 +18,7 @@ namespace TodoApi.Controllers
         }
 
         // GET: api/TodoItems
-        [HttpGet]
+        [HttpGet("get-all-items")]
         public async Task<ActionResult<IEnumerable<TodoItem>>> GetTodoItems()
         {
             var todoItems = await _todoItemService.GetTodoItemsAsync();
@@ -29,7 +26,7 @@ namespace TodoApi.Controllers
         }
 
         // GET: api/TodoItems/5
-        [HttpGet("{id}")]
+        [HttpGet("get-single-item/{id}")]
         public async Task<ActionResult<TodoItem>> GetTodoItem(long id)
         {
             var todoItem = await _todoItemService.GetTodoItemAsync(id);
@@ -43,7 +40,7 @@ namespace TodoApi.Controllers
         }
 
         // PUT: api/TodoItems/5
-        [HttpPut("{id}")]
+        [HttpPut("update-item/{id}")]
         public async Task<IActionResult> PutTodoItem(long id, UpdateTodoItemDto updateTodoItemDto)
         {
             var updatedTodoItem = await _todoItemService.UpdateTodoItemAsync(id, updateTodoItemDto);
@@ -57,7 +54,7 @@ namespace TodoApi.Controllers
         }
 
         // POST: api/TodoItems
-        [HttpPost]
+        [HttpPost("create-item")]
         public async Task<ActionResult<TodoItem>> PostTodoItem(CreateTodoItemDto newTodoItem)
         {
             var createdTodoItem = await _todoItemService.CreateTodoItemAsync(newTodoItem);
@@ -71,7 +68,7 @@ namespace TodoApi.Controllers
         }
 
         // DELETE: api/TodoItems/5
-        [HttpDelete("{id}")]
+        [HttpDelete("delete-item/{id}")]
         public async Task<IActionResult> DeleteTodoItem(long id)
         {
             var deleteSuccess = await _todoItemService.DeleteTodoItemAsync(id);
