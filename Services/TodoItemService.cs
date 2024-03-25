@@ -15,7 +15,8 @@ public class TodoItemService : ITodoItemService
         var newTodoItem = new TodoItem
         {
             Name = createTodoItemDto.Name,
-            IsComplete = false
+            IsComplete = false,
+            UserId = createTodoItemDto.UserId            
         };
 
         _context.TodoItems.Add(newTodoItem);
