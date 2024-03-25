@@ -12,6 +12,7 @@ public class User
     public UserRole Role { get; set; }
     [DataType(DataType.DateTime)]
     public DateTime CreatedAt { get; set; }
+    public DateTime EditedAt {get; set; }
     public bool isDeleted { get; set; }
     public virtual ICollection<TodoItem>? TodoItems { get; set; }
 }
