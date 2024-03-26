@@ -18,6 +18,5 @@ public class UserServiceFactory : IUserServiceFactory
         var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
         return (userService, scope);
     }
-
 }
 
