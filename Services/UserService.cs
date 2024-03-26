@@ -7,32 +7,42 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using TodoApi.Database;
+using TodoApi.Helpers;
 using TodoApi.Models;
 public class UserService : IUserService
 {
-    private readonly AppSettings _appSettings;
+    private readonly JwtHelper _jwtHelper;
 
     private readonly DatabaseContext _context;
 
-    public UserService(IOptions<AppSettings> appSettings, DatabaseContext context)
+    public UserService(JwtHelper jwtHelper, DatabaseContext context)
     {
-        _appSettings = appSettings.Value;
+        _jwtHelper = jwtHelper;
         _context = context;
+    }
+
+    public string HashPassword(string password)
+    {
+        byte[] hashedBytes = SHA256.HashData(Encoding.UTF8.GetBytes(password));
+        return Convert.ToBase64String(hashedBytes);
     }
 
     public async Task<AuthenticateResponseDto?> LoginUser(LoginUserDto loginUserDto)
     {
-            var user = await _context.Users.SingleOrDefaultAsync(
-                x => x.UserName == loginUserDto.UserName && 
-                x.Password == loginUserDto.Password);
+        var hashedPassword = HashPassword(loginUserDto.Password);
 
-            // return null if user not found
-            if (user == null) return null;
+        var user = await _context.Users.SingleOrDefaultAsync(
+            x => x.UserName == loginUserDto.UserName &&
+            x.Password == hashedPassword &&
+            x.isDeleted == false);
 
-            // authentication successful so generate jwt token
-            var token = await generateJwtToken(user);
+        // return null if user not found
+        if (user == null) return null;
 
-            return new AuthenticateResponseDto(user, token);
+        // authentication successful so generate jwt token
+        var token = await _jwtHelper.GenerateJwtToken(user);
+
+        return new AuthenticateResponseDto(user, token);
     }
 
     public async Task<User?> CreateUserAsync(CreateUserDto createUserDto)
@@ -53,10 +63,8 @@ public class UserService : IUserService
             CreatedAt = DateTime.UtcNow,
             EditedAt = DateTime.UtcNow,
             isDeleted = false,
+            Password = HashPassword(createUserDto.Password)
         };
-
-        byte[] hashedBytes = SHA256.HashData(Encoding.UTF8.GetBytes(createUserDto.Password));
-        newUser.Password = Convert.ToBase64String(hashedBytes);
 
         _context.Users.Add(newUser);
         await _context.SaveChangesAsync();
@@ -84,7 +92,7 @@ public class UserService : IUserService
 
         userToUpdate.DisplayName = updateUserDto.DisplayName ?? userToUpdate.DisplayName;
         userToUpdate.UserName = updateUserDto.UserName ?? userToUpdate.UserName;
-        userToUpdate.Password = updateUserDto.Password ?? userToUpdate.Password;
+        userToUpdate.Password = HashPassword(updateUserDto.Password) ?? userToUpdate.Password;
         userToUpdate.EditedAt = DateTime.UtcNow;
 
         try
@@ -109,24 +117,5 @@ public class UserService : IUserService
     private bool UserExists(Guid id)
     {
         return _context.Users.Any(e => e.UserId == id);
-    }
-
-    private async Task<string> generateJwtToken(User user)
-    {
-        //Generate token that is valid for 7 days
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var token = await Task.Run(() =>
-        {
-            var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity([new Claim("id", user.UserId.ToString())]),
-                Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-            return tokenHandler.CreateToken(tokenDescriptor);
-        });
-
-        return tokenHandler.WriteToken(token);
     }
 }
