@@ -58,17 +58,17 @@ namespace TodoApi.Controllers
             return Ok(user);
         }
 
-        [HttpPut("update-user/{userId}")]
+        [HttpPut("update-user")]
         [Authorize]
-        public async Task<IActionResult> UpdateUser(Guid userId, UpdateUserDto updateUserDto)
+        public async Task<IActionResult> UpdateUser(UpdateUserDto updateUserDto)
         {
-            var updatedTodoItem = await _userService.UpdateUserAsync(userId, updateUserDto);
+            var updatedTodoItem = await _userService.UpdateUserAsync(updateUserDto);
 
             if (updatedTodoItem == null)
             {
-                return NotFound($"User with id ({userId}) was not found.");
+                return NotFound($"User with id ({updateUserDto.UserId}) was not found.");
             }
-            return CreatedAtAction(nameof(GetUser), new { id = userId }, updatedTodoItem);
+            return Ok("User successfully updated.");
         }
     }
 }

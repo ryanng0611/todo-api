@@ -21,12 +21,6 @@ public class UserService : IUserService
         _context = context;
     }
 
-    public string HashPassword(string password)
-    {
-        byte[] hashedBytes = SHA256.HashData(Encoding.UTF8.GetBytes(password));
-        return Convert.ToBase64String(hashedBytes);
-    }
-
     public async Task<AuthenticateResponseDto?> LoginUser(LoginUserDto loginUserDto)
     {
         var hashedPassword = HashPassword(loginUserDto.Password);
@@ -82,9 +76,9 @@ public class UserService : IUserService
         return await _context.Users.FindAsync(userId);
     }
 
-    public async Task<User?> UpdateUserAsync(Guid userId, UpdateUserDto updateUserDto)
+    public async Task<User?> UpdateUserAsync(UpdateUserDto updateUserDto)
     {
-        var userToUpdate = await _context.Users.FindAsync(userId);
+        var userToUpdate = await _context.Users.FindAsync(updateUserDto.UserId);
         if (userToUpdate == null)
         {
             return null;
@@ -101,7 +95,7 @@ public class UserService : IUserService
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (!UserExists(userId))
+            if (!UserExists(updateUserDto.UserId))
             {
                 return null;
             }
@@ -117,5 +111,11 @@ public class UserService : IUserService
     private bool UserExists(Guid id)
     {
         return _context.Users.Any(e => e.UserId == id);
+    }
+
+    private string HashPassword(string password)
+    {
+        byte[] hashedBytes = SHA256.HashData(Encoding.UTF8.GetBytes(password));
+        return Convert.ToBase64String(hashedBytes);
     }
 }
