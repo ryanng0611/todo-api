@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using TodoApi.Database;
+using TodoApi.Helpers;
 using TodoApi.Middleware;
 using TodoApi.Models;
 
@@ -17,6 +18,7 @@ builder.Services.AddDbContext<DatabaseContext>(opt => opt
 builder.Services.AddScoped<ITodoItemService, TodoItemService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddSingleton<IUserServiceFactory, UserServiceFactory>();
+builder.Services.AddSingleton<JwtHelper>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(
